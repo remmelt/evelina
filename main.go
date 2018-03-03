@@ -3,25 +3,39 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"github.com/remmelt/evelina/github"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
+	"strings"
 )
 
-type webHookPayload struct {
-	Zen    string `json:"zen"`
-	HookId uint   `json:"hook_id"`
+const ghDeliveryHeader = "X-GitHub-Delivery"
+const ghEventHeader = "X-GitHub-Event"
+
+func handlePullRequestOpened(delivery string, payload github.PayloadPullRequestOpened) error {
+	l(delivery, "Handling PR opened")
+
+	l(delivery, payload.PullRequest.Url)
+
+	return nil
 }
 
-func handlePayload(payload webHookPayload) {
-	l(payload.HookId, payload.Zen)
+func handleIssueCommentCreated(delivery string, payload github.PayloadIssueCommentCreated) error {
+	l(delivery, "Handling issue created")
 
+	if !strings.Contains(payload.Comment.Body, "test this") {
+		l(delivery, "Not triggering, no match", payload.Comment.Body)
+		return nil
+	}
+
+	l(delivery, "Trigger a test run for PR", payload.Issue.Number)
+
+	return nil
 }
 
-func l(hookId uint, msg ...interface{}) {
-	log.Printf("%d | %s", hookId, msg)
+func l(delivery string, msg1 interface{}, msg ...interface{}) {
+	log.Println(delivery, msg1, msg)
 }
 
 func pr(msg ...interface{}) {
@@ -29,30 +43,71 @@ func pr(msg ...interface{}) {
 }
 
 func serve(responseWriter http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+
 	if req.Method != "POST" {
 		http.Error(responseWriter, "Invalid request method", http.StatusMethodNotAllowed)
 		pr("Received message that was not POST, discarding")
 		return
 	}
-	t, _ := httputil.DumpRequest(req, false)
-	pr(string(t))
+
+	event := req.Header.Get(ghEventHeader)
+	delivery := req.Header.Get(ghDeliveryHeader)
+	if event == "" || delivery == "" {
+		pr("event or delivery header not found, discarding")
+		return
+	}
+
+	//pr(ghEventHeader, event)
+	//pr(ghDeliveryHeader, delivery)
+	//t, _ := httputil.DumpRequest(req, true)
+	//pr(string(t))
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		pr("Could not read request body, discarding", err)
+		l("Could not read request body, discarding", err)
 		return
 	}
-	var payload webHookPayload
-	decoder := json.NewDecoder(bytes.NewReader(body))
-	err = decoder.Decode(&payload)
-	if err != nil {
-		pr("Could not decode payload, discarding", err)
+
+	var payload github.GenericPayload
+	if err = json.NewDecoder(bytes.NewReader(body)).Decode(&payload); err != nil {
+		l("Could not decode payload, discarding", err)
 	}
-	defer req.Body.Close()
 
-	handlePayload(payload)
+	switch event {
+	case "pull_request":
+		switch payload.Action {
+		case "opened":
+			var payload github.PayloadPullRequestOpened
+			if err = decode(&payload, body); err == nil {
+				handlePullRequestOpened(delivery, payload)
+			}
+		default:
+			l(delivery, "Handling pull_request/"+payload.Action+" not implemented")
+		}
+	case "issue_comment":
+		switch payload.Action {
+		case "created":
+			var payload github.PayloadIssueCommentCreated
+			if err = decode(&payload, body); err == nil {
+				handleIssueCommentCreated(delivery, payload)
+			}
+		default:
+			l(delivery, "Handling issue_comment/"+payload.Action+" not implemented")
+		}
+	default:
+		l(delivery, "Handling event "+event+" not implemented")
+	}
 
-	responseWriter.Write([]byte(fmt.Sprintf("%d | %s", payload.HookId, payload.Zen)))
+	responseWriter.Write([]byte(delivery))
+}
+
+func decode(payload interface{}, body []byte) error {
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&payload); err != nil {
+		l("Could not decode payload, discarding", err)
+		return err
+	}
+	return nil
 }
 
 func main() {
