@@ -3,58 +3,30 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	gh "github.com/google/go-github/github"
 	"github.com/remmelt/evelina/github"
+	l "github.com/remmelt/evelina/util"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 )
 
 const ghDeliveryHeader = "X-GitHub-Delivery"
 const ghEventHeader = "X-GitHub-Event"
-
-func handlePullRequestOpened(delivery string, payload github.PayloadPullRequestOpened) error {
-	l(delivery, "Handling PR opened")
-
-	l(delivery, payload.PullRequest.Url)
-
-	return nil
-}
-
-func handleIssueCommentCreated(delivery string, payload github.PayloadIssueCommentCreated) error {
-	l(delivery, "Handling issue created")
-
-	if !strings.Contains(payload.Comment.Body, "test this") {
-		l(delivery, "Not triggering, no match", payload.Comment.Body)
-		return nil
-	}
-
-	l(delivery, "Trigger a test run for PR", payload.Issue.Number)
-
-	return nil
-}
-
-func l(delivery string, msg1 interface{}, msg ...interface{}) {
-	log.Println(delivery, msg1, msg)
-}
-
-func pr(msg ...interface{}) {
-	log.Println(msg)
-}
 
 func serve(responseWriter http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	if req.Method != "POST" {
 		http.Error(responseWriter, "Invalid request method", http.StatusMethodNotAllowed)
-		pr("Received message that was not POST, discarding")
+		l.Pr("Received message that was not POST, discarding")
 		return
 	}
 
 	event := req.Header.Get(ghEventHeader)
 	delivery := req.Header.Get(ghDeliveryHeader)
 	if event == "" || delivery == "" {
-		pr("event or delivery header not found, discarding")
+		l.Pr("event or delivery header not found, discarding")
 		return
 	}
 
@@ -65,46 +37,36 @@ func serve(responseWriter http.ResponseWriter, req *http.Request) {
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		l("Could not read request body, discarding", err)
+		l.L(delivery, "Could not read request body, discarding", err)
 		return
 	}
 
-	var payload github.GenericPayload
-	if err = json.NewDecoder(bytes.NewReader(body)).Decode(&payload); err != nil {
-		l("Could not decode payload, discarding", err)
-	}
-
 	switch event {
+	case "push":
+		var payload gh.PushEvent
+		if err = decode(delivery, &payload, body); err == nil {
+			github.HandlePush(delivery, payload)
+		}
 	case "pull_request":
-		switch payload.Action {
-		case "opened":
-			var payload github.PayloadPullRequestOpened
-			if err = decode(&payload, body); err == nil {
-				handlePullRequestOpened(delivery, payload)
-			}
-		default:
-			l(delivery, "Handling pull_request/"+payload.Action+" not implemented")
+		var payload gh.PullRequestEvent
+		if err = decode(delivery, &payload, body); err == nil {
+			github.HandlePullRequestOpened(delivery, payload)
 		}
 	case "issue_comment":
-		switch payload.Action {
-		case "created":
-			var payload github.PayloadIssueCommentCreated
-			if err = decode(&payload, body); err == nil {
-				handleIssueCommentCreated(delivery, payload)
-			}
-		default:
-			l(delivery, "Handling issue_comment/"+payload.Action+" not implemented")
+		var payload gh.IssueCommentEvent
+		if err = decode(delivery, &payload, body); err == nil {
+			github.HandleIssueCommentCreated(delivery, payload)
 		}
 	default:
-		l(delivery, "Handling event "+event+" not implemented")
+		l.L(delivery, "Handling event "+event+" not implemented")
 	}
 
 	responseWriter.Write([]byte(delivery))
 }
 
-func decode(payload interface{}, body []byte) error {
+func decode(delivery string, payload interface{}, body []byte) error {
 	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&payload); err != nil {
-		l("Could not decode payload, discarding", err)
+		l.L(delivery, "Could not decode payload, discarding", err)
 		return err
 	}
 	return nil

@@ -1,0 +1,19 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "P9Jxm7MCfPz72ShyBCqiL8CvTpw=",
+			"path": "github.com/google/go-github/github",
+			"revision": "74e913d8de3209e490c76b099d574e033bdcf717",
+			"revisionTime": "2018-03-02T23:20:02Z"
+		},
+		{
+			"checksumSHA1": "p3IB18uJRs4dL2K5yx24MrLYE9A=",
+			"path": "github.com/google/go-querystring/query",
+			"revision": "53e6ce116135b80d037921a7fdd5138cf32d7a8a",
+			"revisionTime": "2017-01-11T10:11:55Z"
+		}
+	],
+	"rootPath": "github.com/remmelt/evelina"
+}
