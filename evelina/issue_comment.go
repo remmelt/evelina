@@ -1,4 +1,4 @@
-package github
+package evelina
 
 import (
 	"github.com/google/go-github/github"

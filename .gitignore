@@ -1,9 +1,2 @@
 .idea/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-evelina*
+eve

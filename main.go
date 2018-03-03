@@ -3,9 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	gh "github.com/google/go-github/github"
-	"github.com/remmelt/evelina/github"
-	lll "github.com/remmelt/evelina/util"
+	"github.com/google/go-github/github"
+	"github.com/remmelt/evelina/evelina"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -20,14 +19,12 @@ func serve(responseWriter http.ResponseWriter, req *http.Request) {
 
 	if req.Method != "POST" {
 		http.Error(responseWriter, "Invalid request method", http.StatusMethodNotAllowed)
-		lll.Pr("Received message that was not POST, discarding")
 		return
 	}
 
 	event := req.Header.Get(ghEventHeader)
 	delivery := req.Header.Get(ghDeliveryHeader)
 	if event == "" || delivery == "" {
-		lll.Pr("event or delivery header not found, discarding")
 		return
 	}
 
@@ -47,19 +44,19 @@ func serve(responseWriter http.ResponseWriter, req *http.Request) {
 	var e error
 	switch event {
 	case "push":
-		var payload gh.PushEvent
+		var payload github.PushEvent
 		if e = decode(&payload, body, l); e == nil {
-			go github.HandlePush(payload, l)
+			go evelina.HandlePush(payload, l)
 		}
 	case "pull_request":
-		var payload gh.PullRequestEvent
+		var payload github.PullRequestEvent
 		if e = decode(&payload, body, l); e == nil {
-			go github.HandlePullRequest(delivery, payload, l)
+			go evelina.HandlePullRequest(delivery, payload, l)
 		}
 	case "issue_comment":
-		var payload gh.IssueCommentEvent
+		var payload github.IssueCommentEvent
 		if e = decode(&payload, body, l); e == nil {
-			go github.HandleIssueComment(delivery, payload, l)
+			go evelina.HandleIssueComment(delivery, payload, l)
 		}
 	default:
 		//l.Info(delivery, fmt.Sprintf("Handling event '%s' not implemented", event))
@@ -79,6 +76,10 @@ func decode(payload interface{}, body []byte, l *log.Entry) error {
 	}
 	return nil
 }
+
+//func init() {
+//	log.SetFormatter(&log.JSONFormatter{})
+//}
 
 func main() {
 	if os.Getenv("GITHUB_TOKEN") == "" {

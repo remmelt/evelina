@@ -11,11 +11,11 @@ run:
 
 evelina:
 	@gofmt -w -s .
-	@go build -o evelina main.go
+	@go build -o eve main.go
 
 .PHONY: clean
 clean:
-	@rm -f evelina
+	@rm -f eve
 
 .PHONY: package
 package: clean
