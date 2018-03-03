@@ -1,9 +1,13 @@
 package util
 
-import "log"
+import log "github.com/sirupsen/logrus"
 
-func L(delivery string, msg1 interface{}, msg ...interface{}) {
-	log.Println(delivery, msg1, msg)
+//func init() {
+//	log.SetFormatter(&log.JSONFormatter{})
+//}
+
+func Info(delivery string, msg1 interface{}, msg ...interface{}) {
+	log.WithFields(log.Fields{"delivery": delivery}).Info(msg1, msg)
 }
 
 func Pr(msg ...interface{}) {

@@ -13,6 +13,54 @@
 			"path": "github.com/google/go-querystring/query",
 			"revision": "53e6ce116135b80d037921a7fdd5138cf32d7a8a",
 			"revisionTime": "2017-01-11T10:11:55Z"
+		},
+		{
+			"checksumSHA1": "vdLUwBPAX/dtVsKYY8BnTUcyADg=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "f4ee69125072b22721efbe639bd0da9c9d19b8cc",
+			"revisionTime": "2018-02-28T22:01:33Z"
+		},
+		{
+			"checksumSHA1": "6U7dCaxxIMjf5V02iWgyAwppczw=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "91a49db82a88618983a78a06c1cbd4e00ab749ab",
+			"revisionTime": "2018-02-28T15:18:34Z"
+		},
+		{
+			"checksumSHA1": "Y+HGqEkYM15ir+J93MEaHdyFy0c=",
+			"path": "golang.org/x/net/context",
+			"revision": "34057069f4ab13dc4433c68d368737ebeafcccdc",
+			"revisionTime": "2017-05-09T19:22:37Z"
+		},
+		{
+			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "34057069f4ab13dc4433c68d368737ebeafcccdc",
+			"revisionTime": "2017-05-09T19:22:37Z"
+		},
+		{
+			"checksumSHA1": "njV1GJojWGOLSQqXB34S35ct190=",
+			"path": "golang.org/x/oauth2",
+			"revision": "2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0",
+			"revisionTime": "2018-02-23T11:17:35Z"
+		},
+		{
+			"checksumSHA1": "SYinbTOs4JSXuw1R5RhiT+NnKNc=",
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0",
+			"revisionTime": "2018-02-23T11:17:35Z"
+		},
+		{
+			"checksumSHA1": "ElyYFL/fVxkuxNDxTxPyni4A0qo=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9",
+			"revisionTime": "2018-03-01T08:23:35Z"
+		},
+		{
+			"checksumSHA1": "eQq+ZoTWPjyizS9XalhZwfGjQao=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9",
+			"revisionTime": "2018-03-01T08:23:35Z"
 		}
 	],
 	"rootPath": "github.com/remmelt/evelina"
