@@ -23,10 +23,7 @@ func HandleIssueCommentCreated(delivery string, payload github.IssueCommentEvent
 		return nil
 	}
 
-	l.WithFields(log.Fields{
-		"pullRequestNumber": *payload.Issue.Number,
-		"repoURL":           *payload.Repo.URL,
-	}).Info("Trigger a test run for PR")
+	l.Info("Trigger a test run for PR")
 	if err := callTests(delivery, pr, *payload.Repo.Owner.Login, *payload.Repo.Name, *payload.Issue.Number, client, l); err != nil {
 		return err
 	}
@@ -35,6 +32,8 @@ func HandleIssueCommentCreated(delivery string, payload github.IssueCommentEvent
 }
 
 func HandleIssueComment(delivery string, payload github.IssueCommentEvent, l *log.Entry) error {
+	l = l.WithFields(log.Fields{"pullRequestNumber": *payload.Issue.Number, "repoURL": *payload.Repo.URL, "action": *payload.Action})
+
 	client := createClient()
 
 	switch *payload.Action {

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/google/go-github/github"
 	"github.com/remmelt/evelina/evelina"
 	log "github.com/sirupsen/logrus"
@@ -28,12 +29,7 @@ func serve(responseWriter http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//pr(ghEventHeader, event)
-	//pr(ghDeliveryHeader, delivery)
-	//t, _ := httputil.DumpRequest(req, true)
-	//pr(string(t))
-
-	l := log.WithFields(log.Fields{"delivery": delivery})
+	l := log.WithFields(log.Fields{"delivery": delivery, "event": event})
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -59,7 +55,7 @@ func serve(responseWriter http.ResponseWriter, req *http.Request) {
 			go evelina.HandleIssueComment(delivery, payload, l)
 		}
 	default:
-		//l.Info(delivery, fmt.Sprintf("Handling event '%s' not implemented", event))
+		l.Debug(delivery, fmt.Sprintf("Handling event '%s' not implemented", event))
 	}
 
 	if e != nil {
@@ -77,9 +73,10 @@ func decode(payload interface{}, body []byte, l *log.Entry) error {
 	return nil
 }
 
-//func init() {
-//	log.SetFormatter(&log.JSONFormatter{})
-//}
+func init() {
+	//	log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
 	if os.Getenv("GITHUB_TOKEN") == "" {

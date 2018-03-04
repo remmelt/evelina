@@ -6,16 +6,17 @@ import (
 )
 
 func HandlePush(payload github.PushEvent, l *log.Entry) error {
+	l = l.WithFields(log.Fields{
+		"ref":     *payload.Ref,
+		"repoURL": *payload.Repo.URL,
+	})
 	l.Info("Handling push")
 
 	if *payload.Ref != "refs/heads/master" {
-		l.Info("Not triggering, not pushed to master but to", *payload.Ref)
+		l.Info("Not triggering, not pushed to master")
 		return nil
 	}
-	l.WithFields(log.Fields{
-		"ref":  *payload.Ref,
-		"repo": *payload.Repo.URL,
-	}).Info("Trigger a package run, creating a new release")
+	l.Info("Trigger a package run, creating a new release")
 
 	return nil
 }
